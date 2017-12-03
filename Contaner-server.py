@@ -1,3 +1,4 @@
+# import part
 from flask import Flask, Response, render_template, request
 import json
 from subprocess import Popen, PIPE
@@ -7,6 +8,7 @@ from werkzeug import secure_filename
 
 app = Flask(__name__)
 
+# ALL DIFFERENT API ENDPOINTS CAN BE USED
 @app.route("/")
 def index():
     return """
@@ -26,6 +28,8 @@ DELETE /images/<id>                 Delete a specific image
 DELETE /images                      Delete all images
 """
 
+
+# UES GET METHOD TO ACEES CONTAINERS LIST
 @app.route('/containers', methods=['GET'])
 def containers_index():
     """
@@ -44,6 +48,8 @@ def containers_index():
 
     return Response(response=resp, mimetype="application/json")
 
+
+# UES GET METHOD TO ACEES IMAGES LIST
 @app.route('/images', methods=['GET'])
 def images_index():
     """
@@ -57,6 +63,8 @@ def images_index():
     resp = json.dumps(docker_images_to_array(output))
     return Response(response=resp, mimetype="application/json")
 
+
+# UES GET METHOD TO INSPECT SPECIFIC CONTAINER
 @app.route('/containers/<id>', methods=['GET'])
 def containers_show(id):
     """
@@ -69,6 +77,8 @@ def containers_show(id):
 
     return Response(response=resp, mimetype="application/json")
 
+
+# UES GET METHOD TO DUMP SPECIFIC CONTAINER LOGS
 @app.route('/containers/<id>/logs', methods=['GET'])
 def containers_log(id):
     """
@@ -82,6 +92,7 @@ def containers_log(id):
     return Response(response=resp, mimetype="application/json")
 
 
+# UES DELETE METHOD TO DELETE A SPECIFIC IMAGE
 @app.route('/images/<id>', methods=['DELETE'])
 def images_remove(id):
     """
@@ -95,6 +106,7 @@ def images_remove(id):
 
     return Response(response=resp, mimetype="application/json")
 
+# USE DELETE METHOD TO DELETE A SPECIFIC CONTAINER
 @app.route('/containers/<id>', methods=['DELETE'])
 def containers_remove(id):
     """
@@ -102,12 +114,12 @@ def containers_remove(id):
     curl -s -X DELETE -H 'Accept: application/json'
     http://localhost:8080/containers/<id> | python -mjson.tool
     """
-
     docker('stop',id)
     docker('rm',id)
     resp = '{"id": "%s"}' % id
     return Response(response=resp, mimetype="application/json")
 
+# USE DELETE METHOD TO DELETE ALL CONTAINERS
 @app.route('/containers', methods=['DELETE'])
 def containers_remove_all():
     """
@@ -115,7 +127,6 @@ def containers_remove_all():
     curl -X DELETE -H 'Accept: application/json'
     http://localhost:8080/containers
     """
-
     output =docker('ps','-a')
     list = docker_ps_to_array(output)
     idS = []
@@ -127,6 +138,7 @@ def containers_remove_all():
     resp = json.dump(idS)
     return Response(response=resp, mimetype="application/json")
 
+# USE DELETE METHOD TO REMOVE ALL IMAGES
 @app.route('/images', methods=['DELETE'])
 def images_remove_all():
     """
@@ -134,7 +146,6 @@ def images_remove_all():
     curl -X DELETE -H 'Accept: application/json'
     http://localhost:8080/images
     """
-
     output = docker('images')
     list = docker_images_to_array(output)
     idS = []
@@ -145,7 +156,7 @@ def images_remove_all():
     resp = json.dumps(idS)
     return Response(response=resp, mimetype="application/json")
 
-
+# USE POST METHOD TO CREATE CONTAINERS
 @app.route('/containers', methods=['POST'])
 def containers_create():
     """
@@ -160,7 +171,7 @@ def containers_create():
     id = docker(*(args + (image,)))[0:12]
     return Response(response='{"id": "%s"}' % id, mimetype="application/json")
 
-
+# USE POST METHOD TO CREATE IMAGES
 @app.route('/images', methods=['POST'])
 def images_create():
     """
@@ -188,7 +199,7 @@ def images_create():
 
 
 
-
+# USE PATCH METHOD TO UPDATE THE CONTAINERS
 @app.route('/containers/<id>', methods=['PATCH'])
 def containers_update(id):
     """
@@ -209,6 +220,7 @@ def containers_update(id):
     resp = '{"id": "%s"}' % id
     return Response(response=resp, mimetype="application/json")
 
+# USE PATCH METHOD TO UPDATE IMAGES
 @app.route('/images/<id>', methods=['PATCH'])
 def images_update(id):
     """
@@ -243,6 +255,7 @@ def docker(*args):
 #
 # Parses the output of a Docker PS command to a python List
 #
+
 def docker_ps_to_array(output):
     all = []
     for c in [line.split() for line in output.splitlines()[1:]]:
